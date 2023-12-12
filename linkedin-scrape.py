@@ -17,28 +17,7 @@ user_password = user_credentials.user_password
 browser = webdriver.Firefox()
 browser.implicitly_wait(3)
 browser.get('https://www.linkedin.com')
-cookies = [
-    {
-        "name": "li_at",
-        "value": "AQEDAUlKNWIC1XN8AAABjE-MB3wAAAGMc5iLfE4AIkS3JXHBBPgAPuuWMevxxFMDlsxom4Qbll2acKDdF-Hx0u6IHrKrCuRDlLWAO_VyT5ZPiMKsZKetJPf_z6TjSjFTQ9ZXspNg8kw0VmP4-ZS1SLHH",
-    },
-    {
-        "name": "li_gc",
-        "value": "MTswOzE3MDIxNDE1OTM7MjswMjGBO8XkeI3WVKUirzwsFUy6vawrBZoWY9sAHJJzMSfrlw==",
-    },
-    {
-        "name": "li_mc",
-        "value": "MTsyMTsxNzAyMTQzNTIxOzI7MDIxXXGdJ0jg+IREcWCTVFbEgxKWJFPLpNj2qo5Vgj09xcs=",
-    },
-    {
-        "name": "sdsc",
-        "value": "22%3A1%2C1702143370468%7EJAPP%2C0grPpdDIHXYf6fG5jeswsACnKcbw%3D",
-    },
-    {
-        "name": "li_theme", 
-        "value": "dark",
-    }
-]
+cookies = user_credentials.cookies
 for cookie in cookies:
     browser.add_cookie( cookie )
     time.sleep(1)
