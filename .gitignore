@@ -4,3 +4,5 @@ job_offers.txt
 links.txt
 new.txt
 user_credentials.py
+__pycache__
+config.py
