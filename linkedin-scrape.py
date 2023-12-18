@@ -1,25 +1,48 @@
+import psycopg2
+from psycopg2 import Error, errors
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
-# from bs4 import BeautifulSoup
-# import re
-# import requests
-# import html5lib
+
+from sqlalchemy import except_
 import user_credentials
-
-
-user_login = user_credentials.user_login
-user_password = user_credentials.user_password
 
 browser = webdriver.Firefox()
 browser.implicitly_wait(3)
 browser.get('https://www.linkedin.com')
-cookies = user_credentials.cookies
-for cookie in cookies:
-    browser.add_cookie( cookie )
-    time.sleep(1)
+
+try:
+    connection = psycopg2.connect(
+        database="mydatabase",
+        host="localhost",
+        user="arch",
+        password="",
+        port=5432
+    )
+
+    with connection.cursor() as cursor:
+        user_login = user_credentials.user_login
+        user_password = user_credentials.user_password
+        website_url = str(browser.current_url)
+        try:
+            cursor.execute("INSERT INTO websites (name, url) VALUES ('linkedin', %s);",
+                           (website_url,))
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            print(f"Error inserting into websites table: {e}")
+
+        cookies = user_credentials.cookies
+        for cookie in cookies:
+            browser.add_cookie(cookie)
+            time.sleep(1)
+
+
+except Error as e:
+    print(f"Error connecting to the database: {e}")
+
 # website_title = browser.title
 
 # desired_title = 'LinkedIn'
@@ -45,9 +68,11 @@ for cookie in cookies:
 # JOB TITLE AND LOCATION OF THE QUERY
 time.sleep(2)
 browser.get('https://www.linkedin.com/jobs/')
-job_title_input = browser.find_element(By.XPATH, '//input[starts-with(@id, "jobs-search-box-keyword-id")]')
+job_title_input = browser.find_element(By.XPATH, 
+                                       '//input[starts-with(@id, "jobs-search-box-keyword-id")]')
 job_title_input.send_keys('Junior Software Developer')
-job_location_input = browser.find_element(By.XPATH,'//input[starts-with(@id, "jobs-search-box-location-id")]')
+job_location_input = browser.find_element(By.XPATH,
+                                       '//input[starts-with(@id, "jobs-search-box-location-id")]')
 job_location_input.send_keys('Edinburgh')
 time.sleep(3)
 job_location_input.send_keys(Keys.ENTER)
@@ -75,36 +100,53 @@ time.sleep(1.5)
 time_range_selection.click()
 # browser.execute_script("arguments[0].click();", show_results_button)
 # show_results_button.click()
-# show_results_button = browser.find_element(By.CSS_SELECTOR, 'button[data-control-name="filter_show_results"]')
+# show_results_button = browser.find_element(By.CSS_SELECTOR, 
+                                        # 'button[data-control-name="filter_show_results"]')
 
 time.sleep(3)
 ul_query_jobs = browser.find_element(By.CLASS_NAME, 'scaffold-layout__list-container')
 list_of_jobs = ul_query_jobs.find_elements(By.CLASS_NAME, 'jobs-search-results__list-item')
 # XPATH exmaple
-# show_results_button = browser.find_element(By.XPATH, '//button[contains(@class, "artdeco-button") and contains(@class, "ember-view") and contains(@class, "ml2") and contains(@class, "artdeco-button--2") and starts-with(@aria-label, "Apply current filter")]')
+# show_results_button = browser.find_element(By.XPATH, '//button[contains(@class, "artdeco-button")
+# and contains(@class, "ember-view") and contains(@class, "ml2") and
+# contains(@class, "artdeco-button--2") and starts-with(@aria-label, "Apply current filter")]')
 
+try:
+    connection = psycopg2.connect(
+        database="mydatabase",
+        host="localhost",
+        user="arch",
+        password="",
+        port=5432
+    )
 
-print('Before loop')
-jobs_file_txt = open("job_offers.txt", "w")
-for job in list_of_jobs:
-    job.click()
-    # job_link_element = job.find_element(By.XPATH, '//a[(@data-control-id)]')
-    # job_link = job_link_element.get_attribute('href')
-    job_link = browser.current_url
-    print(job_link)
-    time.sleep(3)
-    job_title = browser.find_element(By.CLASS_NAME, 'job-details-jobs-unified-top-card__job-title-link').text
-    print(job_title)
-    jobs_file_txt.write(f"{ job_title } \n")
-    job_header_info = browser.find_element(By.CLASS_NAME, 'job-details-jobs-unified-top-card__primary-description-container').text
-    print(job_header_info)
-    jobs_file_txt.write(f"{ job_header_info } \n")
-    job_header_level = browser.find_element(By.CLASS_NAME, 'job-details-jobs-unified-top-card__job-insight').text
-    print(job_header_level)
-    jobs_file_txt.write(f"{ job_header_level } \n")
-    job_about = browser.find_element(By.ID, 'job-details').text
-    jobs_file_txt.write(f"{ job_about } \n")
-    jobs_file_txt.write(f"---------------------------------------------------------------------------------------------------- \n")
-
-
-
+    with connection.cursor() as cursor:
+        user_login = user_credentials.user_login
+        user_password = user_credentials.user_password
+        query_id = "SELECT id FROM websites WHERE name = 'linkedin'"
+        id_of_the_website = None
+        try:
+            cursor.execute(query_id)
+            id_of_the_website = cursor.fetchone()
+        except Exception as e:
+            print(f"Error executing select query: {e}")
+            
+        for job in list_of_jobs:
+            job.click()
+            job_link = browser.current_url
+            print(job_link)
+            time.sleep(3)
+            job_title = browser.find_element(By.CLASS_NAME,
+                         'job-details-jobs-unified-top-card__job-title-link').text
+            job_header_info = browser.find_element(By.CLASS_NAME,
+                         'job-details-jobs-unified-top-card__primary-description-container').text
+            job_header_level = browser.find_element(By.CLASS_NAME,
+                         'job-details-jobs-unified-top-card__job-insight').text
+            job_about = browser.find_element(By.ID, 'job-details').text
+            cursor.execute("INSERT INTO jobs (url, position, details, level, about, websites_id) \
+                            VALUES (%s, %s, %s, %s, %s, %s);",
+                           (job_link, job_title, job_header_info, job_header_level, job_about,
+                            id_of_the_website))
+            cursor.connection.commit()
+except errors.ExternalRoutineException as e:
+    print(e)
