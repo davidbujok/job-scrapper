@@ -8,6 +8,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
+from helpers import get_url_id
 import user_credentials
 
 browser = webdriver.Firefox()
@@ -161,18 +162,24 @@ try:
                 By.CLASS_NAME, "job-details-jobs-unified-top-card__job-insight"
             ).text
             job_about = browser.find_element(By.ID, "job-details").text
-            cursor.execute(
-                "INSERT INTO jobs (url, position, details, level, about, websites_id) \
-                            VALUES (%s, %s, %s, %s, %s, %s);",
-                (
-                    job_link,
-                    job_title,
-                    job_header_info,
-                    job_header_level,
-                    job_about,
-                    id_of_the_website,
-                ),
-            )
+            job_id = get_url_id(job_link)
+            try:
+                cursor.execute(
+                    "INSERT INTO jobs (url, job_id, position, details, level, about, websites_id) \
+                                VALUES (%s, %s, %s, %s, %s, %s, %s);",
+                    (
+                        job_link,
+                        job_id,
+                        job_title,
+                        job_header_info,
+                        job_header_level,
+                        job_about,
+                        id_of_the_website,
+                    ),
+                )
+            except errors.UniqueViolation:
+                print('Job already exist in the database')
+                pass
             cursor.connection.commit()
 except errors.ExternalRoutineException as e:
     print(e)

@@ -9,6 +9,7 @@ class Job(db.Model):
     details = db.Column(db.String(255))
     about = db.Column(db.Text, nullable=False)
     url = db.Column(db.String(255))
+    job_id = db.Column(db.String(255), unique=True)
     websites_id = db.Column(db.Integer, db.ForeignKey( 'websites.id' ))
 
     def __repr__(self) -> str:

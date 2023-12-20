@@ -6,3 +6,4 @@ new.txt
 user_credentials.py
 __pycache__
 config.py
+.env
