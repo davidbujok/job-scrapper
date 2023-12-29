@@ -38,7 +38,7 @@ def get_url_id(web_url):
         extracted_id = job_id_match.group(1)
         return extracted_id
 
-def cut_out_company_location(job_details):
+def cut_out_company(job_details):
     company_pattern = re.compile(r'([^·]+)')
     comapny = re.search(company_pattern, job_details) 
     if comapny is not None:
@@ -46,7 +46,7 @@ def cut_out_company_location(job_details):
         return extracted_company 
 
 # if job_details is not None:
-#     print(cut_out_company_location(job_details))
+#     print(cut_out_company(job_details))
 
 def cut_out_location(job_details):
     location_pattern = re.compile(r'(?<=\·)(.*?Kingdom)')
@@ -68,11 +68,12 @@ def parse_relative_post_time_to_date(job_details):
     date = cal.parse(parse_job_time)
     return date
 
-parsed_date = parse_relative_post_time_to_date(job_details)
-year = parsed_date[0][0]
-month = parsed_date[0][1]
-day = parsed_date[0][2]
-hour = parsed_date[0][3] 
-minute = parsed_date[0][4] 
-date_translate = datetime.datetime(year, month, day, hour, minute)
-print(date_translate)
+def parsed_date_to_python_date_object(job_details):
+    parsed_date = parse_relative_post_time_to_date(job_details)
+    year = parsed_date[0][0]
+    month = parsed_date[0][1]
+    day = parsed_date[0][2]
+    hour = parsed_date[0][3] 
+    minute = parsed_date[0][4] 
+    date_translate = datetime.datetime(year, month, day, hour, minute)
+    return date_translate
