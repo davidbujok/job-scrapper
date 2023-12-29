@@ -8,7 +8,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
-from helpers import get_url_id
+from helpers import get_url_id, parsed_date_to_python_date_object, cut_out_company, cut_out_location
 import user_credentials
 
 browser = webdriver.Firefox()
@@ -163,17 +163,22 @@ try:
             ).text
             job_about = browser.find_element(By.ID, "job-details").text
             job_id = get_url_id(job_link)
+            location = cut_out_location(job_header_info)
+            company = cut_out_company(job_header_info)
+            ad_date = parsed_date_to_python_date_object(job_header_info)
             try:
                 cursor.execute(
-                    "INSERT INTO jobs (url, job_id, position, details, level, about, websites_id) \
-                                VALUES (%s, %s, %s, %s, %s, %s, %s);",
+                    "INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id) \
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
                     (
                         job_link,
                         job_id,
                         job_title,
-                        job_header_info,
+                        company,
+                        location,
                         job_header_level,
                         job_about,
+                        ad_date,
                         id_of_the_website,
                     ),
                 )
