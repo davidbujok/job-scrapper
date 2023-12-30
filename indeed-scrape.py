@@ -10,10 +10,18 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
-from helpers import get_url_id, parsed_date_to_python_date_object, cut_out_company, cut_out_location
+from helpers import get_url_id, parse_indeed_realtive_date_to_date_object, parsed_date_to_python_date_object, cut_out_company, get_id_indded_job
 
 browser = webdriver.Firefox()
 browser.implicitly_wait(3)
+
+job_title_text = None
+job_location_text = None
+job_description = None
+company_name_text = None
+link_to_job = None
+job_header_level = None
+ad_date = None
 
 try:
     browser.get("https://uk.indeed.com/")
@@ -65,17 +73,19 @@ def find_and_fill_inputs(searched_job_title, searched_job_location):
 
 find_and_fill_inputs(job_title, job_location)
 
-time.sleep(2)
-time_range_selection_button = browser.find_element(
-    By.ID, "filter-dateposted"
-)
-browser.execute_script("arguments[0].click();", time_range_selection_button)
-time.sleep(1)
-hours_24 = browser.find_element(By.ID, 'filter-dateposted-menu')
-hours_24_link = hours_24.find_elements(By.TAG_NAME, 'a')
-hours_24_link[0].click()
+# TIME RANGE SELECTION , SWITCH OFF FOR TESTING 
+# time.sleep(2)
+# time_range_selection_button = browser.find_element(
+#     By.ID, "filter-dateposted"
+# )
+# browser.execute_script("arguments[0].click();", time_range_selection_button)
+# time.sleep(1)
+# hours_24 = browser.find_element(By.ID, 'filter-dateposted-menu')
+# hours_24_link = hours_24.find_elements(By.TAG_NAME, 'a')
+# hours_24_link[0].click()
 
-time.sleep(2)
+time.sleep(1.5)
+
 try:
     div_block_of_job_cards = browser.find_element(By.ID, 'mosaic-provider-jobcards')
 except NoSuchElementException:
@@ -85,79 +95,67 @@ except NoSuchElementException:
 ul_of_job_cards = div_block_of_job_cards.find_element(By.TAG_NAME, 'ul')
 list_of_li_jobs = ul_of_job_cards.find_elements(By.TAG_NAME, 'li')
 
-for job_card in list_of_li_jobs:
-    try:
-        browser.execute_script("arguments[0].scrollIntoView(true);", job_card)
-        time.sleep(1)
-        a_href_link = job_card.find_element(By.TAG_NAME, 'a')
-        link_to_job = a_href_link.get_attribute('href')
-        a_href_link.click()
-        print(job_card.text) 
-        time.sleep(1)
-    except NoSuchElementException:
-        print('Not a link card')
-    except ElementNotInteractableException:
-        print('Not in a view')
 
-    time.sleep(1)
-# list_of_jobs = select_div_query_jobs.find_elements(
-#     By.CLASS_NAME, "jobs-search-results__list-item"
-# )
+try:
+    with connection.cursor() as cursor:
+        query_id = "SELECT id FROM websites WHERE name = 'indeed'"
+        id_of_the_website = None
+        try:
+            cursor.execute(query_id)
+            id_of_the_website = cursor.fetchone()
+        except Exception as e:
+            print(f"Error executing select query: {e}")
 
-# for job in list_of_jobs:
-#     job.click()
-#     job_link = browser.current_url
-#     print(job_link)
+        for job_card in list_of_li_jobs:
+            try:
+                browser.execute_script("arguments[0].scrollIntoView(true);", job_card)
+                time.sleep(1)
+                a_href_link = job_card.find_element(By.TAG_NAME, 'a')
+                relative_post_date = job_card.find_element(By.CLASS_NAME, 'date').text
+                ad_date = parse_indeed_realtive_date_to_date_object(relative_post_date)
+                link_to_job = a_href_link.get_attribute('href')
+                a_href_link.click()
+                classes_with_id = job_card.find_element(By.TAG_NAME, 'div').get_attribute('class')
+                job_id = get_id_indded_job(classes_with_id)
+                # __AUTO_GENERATED_PRINT_VAR_START__
+                print(f" job_id: {str(job_id)}") # __AUTO_GENERATED_PRINT_VAR_END__
+                job_header = browser.find_element(By.XPATH,
+                                                  '//div[contains(@class, "jobsearch-HeaderContainer")]')
+                company_name_text = browser.find_element(By.CSS_SELECTOR,
+                                                    '[data-company-name="true"]').text
+                job_description = browser.find_element(By.ID, 'jobDescriptionText').text
+                job_title_text = job_header.find_element(By.TAG_NAME, 'h2').text
+                job_location_text = browser.find_element(
+                    By.CSS_SELECTOR, '[data-testid="inlineHeader-companyLocation"]'
+                ).text
 
-# try:
-#     with connection.cursor() as cursor:
-#         query_id = "SELECT id FROM websites WHERE name = 'indeed'"
-#         id_of_the_website = None
-#         try:
-#             cursor.execute(query_id)
-#             id_of_the_website = cursor.fetchone()
-#         except Exception as e:
-#             print(f"Error executing select query: {e}")
+                time.sleep(1)
+            except NoSuchElementException:
+                print('Not a link card')
+            except ElementNotInteractableException:
+                print('Not in a view')
 
-#         for job in list_of_jobs:
-#             job.click()
-#             job_link = browser.current_url
-#             print(job_link)
-#             time.sleep(3)
-#             job_title = browser.find_element(
-#                 By.CLASS_NAME, "job-details-jobs-unified-top-card__job-title-link"
-#             ).text
-#             job_header_info = browser.find_element(
-#                 By.CLASS_NAME,
-#                 "job-details-jobs-unified-top-card__primary-description-container",
-#             ).text
-#             job_header_level = browser.find_element(
-#                 By.CLASS_NAME, "job-details-jobs-unified-top-card__job-insight"
-#             ).text
-#             job_about = browser.find_element(By.ID, "job-details").text
-#             job_id = get_url_id(job_link)
-#             location = cut_out_location(job_header_info)
-#             company = cut_out_company(job_header_info)
-#             ad_date = parsed_date_to_python_date_object(job_header_info)
-#             try:
-#                 cursor.execute(
-#                     "INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id) \
-#                                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
-#                     (
-#                         job_link,
-#                         job_id,
-#                         job_title,
-#                         company,
-#                         location,
-#                         job_header_level,
-#                         job_about,
-#                         ad_date,
-#                         id_of_the_website,
-#                     ),
-#                 )
-#             except errors.UniqueViolation:
-#                 print('Job already exist in the database')
-#                 pass
-#             cursor.connection.commit()
-# except errors.ExternalRoutineException as e:
-#     print(e)
+            time.sleep(1)
+
+            try:
+                cursor.execute(
+                    "INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id) \
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    (
+                        link_to_job,
+                        job_id,
+                        job_title_text,
+                        company_name_text,
+                        job_location_text,
+                        job_header_level,
+                        job_description,
+                        ad_date,
+                        id_of_the_website,
+                    ),
+                )
+            except errors.UniqueViolation:
+                print('Job already exist in the database')
+                pass
+            cursor.connection.commit()
+except errors.ExternalRoutineException as e:
+    print(e)
