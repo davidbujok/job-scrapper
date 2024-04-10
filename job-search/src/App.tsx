@@ -1,16 +1,27 @@
+import { useState } from "react"
 import Jobs from "./Components/Jobs"
+import { Job as JobType } from "./Interfaces"
+import JobComponent from "./Components/JobComponent"
+import Navbar from "./Components/Navbar"
 
 function App() {
 
+  //const [visible, setVisible] = useState<boolean>(false)
+  const [job, setJob] = useState<JobType | null>(null)
+
   return (
     <>
-      <h1>Vite + React</h1>
-      <input type="text"></input>
-      <input type="text"></input>
-      <input type="text"></input>
-      <input type="text"></input>
-      <Jobs></Jobs>
-	  console.log( Jobs)
+      <Navbar />
+      <div className="flex ml-11 gap-14">
+        <div className="flex-col w-4/12">
+          <Jobs setJob={setJob}></Jobs>
+        </div>
+        <div className="w-2/5">
+        {job &&
+          <JobComponent job={job} />
+        }
+        </div>
+      </div>
     </>
   )
 }

@@ -33,6 +33,11 @@ class Job(db.Model):
         # junior_jobs = db.session.execute(db.select(Job).where(Job.id.equals("1600")).scalars()
         return [job.serialize() for job in junior_jobs]
 
+    @classmethod
+    def query_job(cls, query):
+        queried_jobs = db.session.execute(db.select(Job).where(Job.level.contains(query.capitalize()))).scalars().all()
+        return [job.serialize() for job in queried_jobs]
+
     # @classmethod
     def serialize(self):
         return {

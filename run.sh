@@ -13,7 +13,7 @@ tmux send-keys 'npm run host' C-m
 
 tmux new-window 
 tmux rename-window flask-run
-tmux send-keys 'cd ~/repos/job-search' C-m
+tmux send-keys 'cd ~/repos/job-scrapper/' C-m
 tmux send-keys  'source venv/bin/activate' C-m
 tmux send-keys  'flask --app app run' C-m
 
@@ -21,11 +21,11 @@ tmux new-window
 tmux rename-window js-code
 tmux send-keys  'source venv/bin/activate' C-m
 tmux send-keys  'swaymsg exec google-chrome-stable http://172.18.0.2:5173/' C-m
-tmux send-keys 'cd ~/repos/job-search/job-search/' C-m
+tmux send-keys 'cd ~/repos/job-scrapper/job-search' C-m
 tmux send-keys 'clear' C-m
 
 tmux new-window 
 tmux rename-window scrapers
-tmux send-keys 'cd ~/repos/job-search/scrapers/' C-m
+tmux send-keys 'cd ~/repos/job-scrapper/scrapers' C-m
 tmux send-keys 'source ../venv/bin/activate' C-m
 tmux send-keys 'clear' C-m
