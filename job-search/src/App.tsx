@@ -6,15 +6,15 @@ import Navbar from "./Components/Navbar"
 
 function App() {
 
-  //const [visible, setVisible] = useState<boolean>(false)
   const [job, setJob] = useState<JobType | null>(null)
+  const [jobs, setJobs] = useState<Array<JobType>>([])
 
   return (
     <>
-      <Navbar />
+      <Navbar setJobs={setJobs} />
       <div className="flex ml-11 gap-14">
         <div className="flex-col w-4/12">
-          <Jobs setJob={setJob}></Jobs>
+          <Jobs setJob={setJob} jobs={jobs} setJobs={setJobs}></Jobs>
         </div>
         <div className="w-2/5">
         {job &&
