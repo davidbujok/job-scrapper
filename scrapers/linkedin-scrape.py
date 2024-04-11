@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2 import Error, errors
 from selenium import webdriver
+from sqlalchemy import column, insert, table
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
@@ -8,7 +9,12 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
-from helpers import get_url_id, parsed_date_to_python_date_object, cut_out_company, cut_out_location
+from helpers import (
+    get_url_id,
+    parsed_date_to_python_date_object,
+    cut_out_company,
+    cut_out_location,
+)
 import user_credentials
 
 browser = webdriver.Firefox()
@@ -169,26 +175,35 @@ try:
             ad_date = parsed_date_to_python_date_object(job_header_info)
             apply_status = False
             try:
-                cursor.execute(
-                    "INSERT INTO jobs (url, job_id, position, \
-                                       company, location, level,\
-                                       about, post_date, websites_id, apply_status) \
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                    (
-                        job_link,
-                        job_id,
-                        job_title_text,
-                        company,
-                        location,
-                        job_header_level,
-                        job_about,
-                        ad_date,
-                        id_of_the_website,
-                        apply_status
-                    ),
+                jobs = table(
+                    "jobs",
+                    column("job_id"),
+                    column("url"),
+                    column("position"),
+                    column("company"),
+                    column("location"),
+                    column("level"),
+                    column("about"),
+                    column("post_date"),
+                    column("website_id"),
+                    column("apply_status"),
                 )
+                stmt = insert(jobs).values(
+                    url=job_link,
+                    job_id=job_id,
+                    position=job_title_text,
+                    company=company,
+                    location=location,
+                    level=job_header_level,
+                    about=job_about,
+                    post_date=ad_date,
+                    website_id=id_of_the_website,
+                    apply_status=apply_status,
+                ).returning(jobs.c.position, jobs.c.company)
+
+                print(stmt)
             except errors.UniqueViolation:
-                print('Job already exist in the database')
+                print("Job already exist in the database")
                 pass
             cursor.connection.commit()
 except errors.ExternalRoutineException as e:
