@@ -23,19 +23,21 @@ class Job(db.Model):
 
     @classmethod
     def get_all_jobs(cls):
-        jobs = db.session.execute(db.select(Job)).scalars()
+        jobs = db.session.execute(db.select(Job).order_by(Job.post_date.desc())).scalars().all()
         return [job.serialize() for job in jobs]
 
     @classmethod
     def get_junior_jobs(cls):
-        junior_jobs = db.session.execute(db.select(Job).where(Job.level.ilike("%Entry%"))).scalars().all()
-        # junior_jobs = db.session.execute(db.select(Job)).scalars()
-        # junior_jobs = db.session.execute(db.select(Job).where(Job.id.equals("1600")).scalars()
+        junior_jobs = db.session.execute(db.select(Job)
+            .where(Job.level.ilike("%Entry%"))
+            .order_by(Job.post_date.desc())) .scalars().all()
         return [job.serialize() for job in junior_jobs]
 
     @classmethod
     def query_job(cls, query):
-        queried_jobs = db.session.execute(db.select(Job).where(Job.level.contains(query.capitalize()))).scalars().all()
+        queried_jobs = db.session.execute(db.select(Job)
+                       .where(Job.level.contains(query.capitalize()))
+                       .order_by(Job.post_date.desc())).scalars().all()
         return [job.serialize() for job in queried_jobs]
 
     # @classmethod

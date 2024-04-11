@@ -24,7 +24,7 @@ def get_queried_jobs(query):
 @jobs_bp.route("/runscript")
 def run_script():
     try:
-        completed_process = subprocess.run(['/home/arch/repos/job-search/scrapers/scrapeall.sh'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        completed_process = subprocess.run(['/home/arch/repos/job-scrapper/scrapers/scrapeall.sh'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print('Script executed:', completed_process.stdout)
         return jsonify({'message': 'Script executed successfully'})
     except subprocess.CalledProcessError as e:
