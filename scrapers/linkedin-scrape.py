@@ -153,7 +153,7 @@ try:
             print(job_link)
             time.sleep(3)
             job_title_text = browser.find_element(
-                By.CLASS_NAME, "job-details-jobs-unified-top-card__job-title-link"
+                By.CLASS_NAME, "job-card-list__title--link"
             ).text
             job_header_info = browser.find_element(
                 By.CLASS_NAME,
