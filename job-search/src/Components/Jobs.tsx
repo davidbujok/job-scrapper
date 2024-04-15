@@ -2,27 +2,6 @@ import { Dispatch, useEffect } from "react"
 import { Job as JobType } from "../Interfaces";
 
 
-// fetch("http://127.0.0.1:5000/update-job", {
-//   method: "POST",
-//   body: JSON.stringify({
-//     id: number;
-//     title: string;
-//     position: string;
-//     company: string;
-//     location: string;
-//     about: string;
-//     url: string;
-//     job_id: number;
-//     post_date: string;
-//     apply_status: boolean;
-//     websites_id: number;
-//   }),
-//   headers: {
-//     "Content-type": "application/json; charset=UTF-8"
-//   }
-// })
-//   .then((response) => response.json())
-//   .then((json) => console.log(json));
 interface JobsProps {
   setJob: Dispatch<React.SetStateAction<JobType | null>>;
   setJobs: Dispatch<React.SetStateAction<JobType[]>>;
