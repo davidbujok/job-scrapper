@@ -131,76 +131,94 @@ try:
                 time.sleep(1)
                 card_outline = job_card.find_element(By.XPATH, './div[1]')
                 card_outline.click()
-                div_container = card_outline.find_element(By.XPATH, './div[1]')
-                div_container_nest_lev_1 = div_container.find_element(By.XPATH, './div[1]')
-                div_container_nest_lev_2 = div_container_nest_lev_1.find_element(By.XPATH, './div[1]')
-                div_beacon = div_container_nest_lev_2.find_element(By.XPATH, './div[1]')
-                bottom_table = div_beacon.find_element(By.XPATH, './table[2]')
-                print(bottom_table.text)
-                span = bottom_table.find_element(By.XPATH, './/span[@data-testid="myJobsStateDate"]')
-                direct_date = browser.execute_script("""
-                    var parent = arguments[0];
-                    var child = parent.firstChild;
-                    var textContent = '';
-                    while(child) {
-                        if (child.nodeType === Node.TEXT_NODE) {
-                            textContent += child.textContent;
-                        }
-                        child = child.nextSibling;
-                    }
-                    return textContent;
-                """, span)
 
-                ad_date = parse_indeed_realtive_date_to_date_object(direct_date)
-                # print("ad date: ", ad_date)
+                job_title = browser.find_element(By.CLASS_NAME, "jobsearch-JobInfoHeader-title")
+                job_title_text = job_title.text
+                print(job_title.text)
 
-                top_table = div_beacon.find_element(By.XPATH, './table[1]')
-                table_body = top_table.find_element(By.TAG_NAME, 'tbody')
-                tr_element = table_body.find_element(By.TAG_NAME, 'tr')
-                td_element = tr_element.find_element(By.TAG_NAME, 'td')
-                job_title_div = tr_element.find_element(By.TAG_NAME, 'div')
-                job_title_text = job_title_div.text
-                heading_with_link = job_title_div.find_element(By.TAG_NAME, 'h2')
-                link_tag = heading_with_link.find_element(By.TAG_NAME, 'a')
-                link_to_job = link_tag.get_attribute('href')
-                # print(link_to_job)
-                job_id = link_tag.get_property('id')
-                company_div = td_element.find_element(By.XPATH, './div[2]')
-                company_nested_div = company_div.find_element(By.TAG_NAME, 'div')
-                company_location_div = company_nested_div.find_element(By.TAG_NAME, 'div')
-                job_location_text = company_location_div.text
-                company_nested_div_content = company_nested_div.text.splitlines()
-                company_name_text = "";
-                if len(company_nested_div_content) > 0 :
-                    company_name_text = company_nested_div_content[0]
-                    # print(company_name_text)
+                link_to_job = str(browser.current_url)
+                print(link_to_job)
 
-                job_details_block = browser.find_element(By.XPATH, 
-                    '//div[contains(@class, "jobsearch-RightPane")]')
-                job_full_details_block = job_details_block.find_element(By.TAG_NAME,
-                    'div')
-                details_block_div_nested_levOne = job_full_details_block.find_element(By.TAG_NAME,
-                                                                                      'div')
-                div_nested_levTwo = browser.find_element(By.XPATH, 
-                    '//div[contains(@class, "fastviewjob")]')
-                div_nested_levThree = div_nested_levTwo.find_element(By.XPATH, 
-                    '//div[contains(@class, "jobsearch-JobComponent")]')
-                div_nested_levFour = div_nested_levTwo.find_element(By.XPATH, 
-                    '//div[contains(@class, "jobsearch-embeddedBody")]')
-                job_description = div_nested_levFour.find_element(By.ID, 
-                    'jobDescriptionText')
+                company_name_and_location_div = job_card.find_element(By.CLASS_NAME, "company_location")
+                company_name = company_name_and_location_div.find_element(By.TAG_NAME, 'span')
+                company_name_text = company_name.text
+                print(company_name_text) 
+
+                company_location = company_name_and_location_div.find_element(By.CSS_SELECTOR,
+                                                                              'div[data-testid="text-location"]')
+                job_location_text = company_location.text
+                print(company_location.text)
+
+                job_description = browser.find_element(By.ID, 'jobDescriptionText') 
                 job_description_text = job_description.text
-                
-                # print(link_to_job)
-                # print(job_id)
-                # print(job_title_text)
-                # print(company_name_text)
-                # print(job_location_text)
-                # print(job_title_text)
-                # print(job_description_text)
-                # print(ad_date)
-                # print(id_of_the_website)
+                # print(job_description.text)
 
+                post_date = parse_indeed_realtive_date_to_date_object(job_card.text)
+                ad_date = post_date
+                print(post_date)
+                # company_name_and_location_div_lev_2 = company_name_and_location_div.find_element(By.TAG_NAME, 'div')
+                # company_name_and_location_basket = company_name_and_location_div_lev_2.find_elements(By.TAG_NAME, 'div')
+
+                # div_container = card_outline.find_element(By.XPATH, './div[1]')
+                # div_container_nest_lev_1 = div_container.find_element(By.XPATH, './div[1]')
+                # div_container_nest_lev_2 = div_container_nest_lev_1.find_element(By.XPATH, './div[1]')
+                # div_beacon = div_container_nest_lev_2.find_element(By.XPATH, './div[1]')
+                # bottom_table = div_beacon.find_element(By.XPATH, './table[2]')
+                # print(bottom_table.text)
+                # span = bottom_table.find_element(By.XPATH, './/span[@data-testid="myJobsStateDate"]')
+                # direct_date = browser.execute_script("""
+                #     var parent = arguments[0];
+                #     var child = parent.firstChild;
+                #     var textContent = '';
+                #     while(child) {
+                #         if (child.nodeType === Node.TEXT_NODE) {
+                #             textContent += child.textContent;
+                #         }
+                #         child = child.nextSibling;
+                #     }
+                #     return textContent;
+                # """, span)
+                #
+                # ad_date = parse_indeed_realtive_date_to_date_object(direct_date)
+                # # print("ad date: ", ad_date)
+                #
+                # top_table = div_beacon.find_element(By.XPATH, './table[1]')
+                # table_body = top_table.find_element(By.TAG_NAME, 'tbody')
+                # tr_element = table_body.find_element(By.TAG_NAME, 'tr')
+                # td_element = tr_element.find_element(By.TAG_NAME, 'td')
+                # job_title_div = tr_element.find_element(By.TAG_NAME, 'div')
+                # job_title_text = job_title_div.text
+                # heading_with_link = job_title_div.find_element(By.TAG_NAME, 'h2')
+                # link_tag = heading_with_link.find_element(By.TAG_NAME, 'a')
+                # link_to_job = link_tag.get_attribute('href')
+                # # print(link_to_job)
+                # job_id = link_tag.get_property('id')
+                # company_div = td_element.find_element(By.XPATH, './div[2]')
+                # company_nested_div = company_div.find_element(By.TAG_NAME, 'div')
+                # company_location_div = company_nested_div.find_element(By.TAG_NAME, 'div')
+                # job_location_text = company_location_div.text
+                # company_nested_div_content = company_nested_div.text.splitlines()
+                # company_name_text = "";
+                # if len(company_nested_div_content) > 0 :
+                #     company_name_text = company_nested_div_content[0]
+                #     # print(company_name_text)
+                #
+                # job_details_block = browser.find_element(By.XPATH, 
+                #     '//div[contains(@class, "jobsearch-RightPane")]')
+                # job_full_details_block = job_details_block.find_element(By.TAG_NAME,
+                #     'div')
+                # details_block_div_nested_levOne = job_full_details_block.find_element(By.TAG_NAME,
+                #                                                                       'div')
+                # div_nested_levTwo = browser.find_element(By.XPATH, 
+                #     '//div[contains(@class, "fastviewjob")]')
+                # div_nested_levThree = div_nested_levTwo.find_element(By.XPATH, 
+                #     '//div[contains(@class, "jobsearch-JobComponent")]')
+                # div_nested_levFour = div_nested_levTwo.find_element(By.XPATH, 
+                #     '//div[contains(@class, "jobsearch-embeddedBody")]')
+                # job_description = div_nested_levFour.find_element(By.ID, 
+                #     'jobDescriptionText')
+                # job_description_text = job_description.text
+                
             except NoSuchElementException:
                 print('Not a link card')
             except ElementNotInteractableException:
@@ -233,27 +251,13 @@ RETURNING position, company;
                 data = (link_to_job, job_id, job_title_text, company_name_text, job_location_text,
                         job_title_text, job_description_text, ad_date, id_of_the_website, apply_status)
                 cursor.execute(sql, data)
-                # cursor.execute(
-                #     "INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id) \
-                #                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                #     (
-                #         link_to_job,
-                #         job_id,
-                #         job_title_text,
-                #         company_name_text,
-                #         job_location_text,
-                #         job_title_text,
-                #         job_description_text,
-                #         ad_date,
-                #         id_of_the_website,
-                #     ),
-                # )
             except errors.UniqueViolation:
                 print('Job already exist in the database')
                 pass
             except errors.NotNullViolation:
                 print('Missing field')
                 pass
+            print('Job added to database')
             cursor.connection.commit()
 except errors.ExternalRoutineException as e:
     print(e)

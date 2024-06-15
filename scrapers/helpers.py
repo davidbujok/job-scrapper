@@ -39,22 +39,29 @@ def get_url_id(web_url):
         extracted_id = job_id_match.group(1)
         return extracted_id
 
-def cut_out_company(job_details):
+# def cut_out_company(job_details):
+#     company_pattern = re.compile(r'([^·]+)')
+#     comapny = re.search(company_pattern, job_details) 
+#     if comapny is not None:
+#         extracted_company = comapny.group(1)
+#         return extracted_company 
+
+# if job_details is not None:
+#     print(cut_out_company(job_details))
+
+# def cut_out_location(job_details):
+#     location_pattern = re.compile(r'(?<=\·)(.*?Kingdom)')
+#     location = re.search(location_pattern, job_details) 
+#     if location is not None:
+#         extracted_location = location.group(1)
+#         return extracted_location
+
+def cut_out_location(job_details):
     company_pattern = re.compile(r'([^·]+)')
     comapny = re.search(company_pattern, job_details) 
     if comapny is not None:
         extracted_company = comapny.group(1)
         return extracted_company 
-
-# if job_details is not None:
-#     print(cut_out_company(job_details))
-
-def cut_out_location(job_details):
-    location_pattern = re.compile(r'(?<=\·)(.*?Kingdom)')
-    location = re.search(location_pattern, job_details) 
-    if location is not None:
-        extracted_location = location.group(1)
-        return extracted_location
 
 def cut_out_time(job_details):
     time_pattern = re.compile(r'(\d.*)(\·)')
@@ -93,10 +100,17 @@ def cut_relative_date_indeed(relative_date):
         return relative_date
 
 def parse_indeed_realtive_date_to_date_object(relative_date):
-    if relative_date != "Today":
+    relative_date_text = relative_date.split("\n")
+    if len(relative_date_text) > 1:
+        relative_date = relative_date_text[-1]
+    else:
+        relative_date = relative_date_text[0]
+
+    if relative_date != "Just posted":
         relative_date_text = cut_relative_date_indeed(relative_date)
     else :
         return datetime.datetime.now().date()
+
     if relative_date_text is not None:
         parsed_date = cal.parse(relative_date_text) 
         year = parsed_date[0][0]

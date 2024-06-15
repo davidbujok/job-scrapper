@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2 import Error, errors
 from selenium import webdriver
-from sqlalchemy import column, insert, table
+from sqlalchemy import Table, column, insert, table
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
@@ -12,7 +12,7 @@ import time
 from helpers import (
     get_url_id,
     parsed_date_to_python_date_object,
-    cut_out_company,
+    # cut_out_company,
     cut_out_location,
 )
 import user_credentials
@@ -82,8 +82,10 @@ if cookies == None:
 browser.get("https://www.linkedin.com/jobs/")
 print("What job you're looking for?")
 searched_job_title_text = input()
+# searched_job_title_text = "Junior Software Developer"
 print("Where?")
 searched_job_location = input()
+# searched_job_location = "Edinburgh"
 
 
 def search_for_jobs(searched_job_title_text, searched_job_location):
@@ -136,6 +138,7 @@ ul_query_jobs = browser.find_element(By.CLASS_NAME, "scaffold-layout__list-conta
 list_of_jobs = ul_query_jobs.find_elements(
     By.CLASS_NAME, "jobs-search-results__list-item"
 )
+print(list_of_jobs) 
 # XPATH exmaple
 # show_results_button = browser.find_element(By.XPATH, '//button[contains(@class, "artdeco-button")
 # and contains(@class, "ember-view") and contains(@class, "ml2") and
@@ -156,52 +159,53 @@ try:
         for job in list_of_jobs:
             job.click()
             job_link = browser.current_url
-            print(job_link)
             time.sleep(3)
-            job_title_text = browser.find_element(
+            job_title_text = job.find_element(
                 By.CLASS_NAME, "job-card-list__title--link"
             ).text
             job_header_info = browser.find_element(
                 By.CLASS_NAME,
                 "job-details-jobs-unified-top-card__primary-description-container",
             ).text
+            company_element = browser.find_element(
+                By.CLASS_NAME,
+                "job-details-jobs-unified-top-card__company-name",
+            ).text
+            print(job_header_info)
             job_header_level = browser.find_element(
                 By.CLASS_NAME, "job-details-jobs-unified-top-card__job-insight"
             ).text
             job_about = browser.find_element(By.ID, "job-details").text
+            # print(job_about) 
             job_id = get_url_id(job_link)
             location = cut_out_location(job_header_info)
-            company = cut_out_company(job_header_info)
+            print(f"location {location}")
+            company = company_element
+            print(f"company {company}")
             ad_date = parsed_date_to_python_date_object(job_header_info)
             apply_status = False
             try:
                 jobs = table(
                     "jobs",
-                    column("job_id"),
-                    column("url"),
+                    column("level"),
                     column("position"),
+                    column("about"),
+                    column("url"),
+                    column("website_id"),
+                    column("job_id"),
+                    column("post_date"),
                     column("company"),
                     column("location"),
-                    column("level"),
-                    column("about"),
-                    column("post_date"),
-                    column("website_id"),
                     column("apply_status"),
                 )
-                stmt = insert(jobs).values(
-                    url=job_link,
-                    job_id=job_id,
-                    position=job_title_text,
-                    company=company,
-                    location=location,
-                    level=job_header_level,
-                    about=job_about,
-                    post_date=ad_date,
-                    website_id=id_of_the_website,
-                    apply_status=apply_status,
-                ).returning(jobs.c.position, jobs.c.company)
-
-                print(stmt)
+                sql = """
+INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id, apply_status)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+RETURNING position, company;
+"""
+                data = (job_link, job_id, job_title_text, company, location, job_header_level, job_about, ad_date, id_of_the_website, apply_status)
+                cursor.execute(sql, data)
+                print(f"Job({id}) for {company} added to database. Posted on: {ad_date}") 
             except errors.UniqueViolation:
                 print("Job already exist in the database")
                 pass
