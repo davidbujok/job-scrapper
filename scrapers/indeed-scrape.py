@@ -10,6 +10,8 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
+
+from sqlalchemy import column, table
 from helpers import (
     parse_indeed_realtive_date_to_date_object,
     get_id_indded_job
@@ -52,11 +54,11 @@ except Error as e:
     print("Database connection error: ", e)
 
 print("What job you're looking for?")
-job_title_text = input()
-# job_title_text = "junior software developer"
+# job_title_text = input()
+job_title_text = ""
 print("Where?")
-job_location = input()
-# job_location = "Edinburgh"
+# job_location = input()
+job_location = "Dunfermline, Fife"
 time.sleep(1)
 try:
     ad_alert = browser.find_element(By.XPATH, '//button[contains(@aria-label,"close")]')
@@ -134,6 +136,7 @@ try:
                 div_container_nest_lev_2 = div_container_nest_lev_1.find_element(By.XPATH, './div[1]')
                 div_beacon = div_container_nest_lev_2.find_element(By.XPATH, './div[1]')
                 bottom_table = div_beacon.find_element(By.XPATH, './table[2]')
+                print(bottom_table.text)
                 span = bottom_table.find_element(By.XPATH, './/span[@data-testid="myJobsStateDate"]')
                 direct_date = browser.execute_script("""
                     var parent = arguments[0];
@@ -149,6 +152,7 @@ try:
                 """, span)
 
                 ad_date = parse_indeed_realtive_date_to_date_object(direct_date)
+                # print("ad date: ", ad_date)
 
                 top_table = div_beacon.find_element(By.XPATH, './table[1]')
                 table_body = top_table.find_element(By.TAG_NAME, 'tbody')
@@ -159,6 +163,7 @@ try:
                 heading_with_link = job_title_div.find_element(By.TAG_NAME, 'h2')
                 link_tag = heading_with_link.find_element(By.TAG_NAME, 'a')
                 link_to_job = link_tag.get_attribute('href')
+                # print(link_to_job)
                 job_id = link_tag.get_property('id')
                 company_div = td_element.find_element(By.XPATH, './div[2]')
                 company_nested_div = company_div.find_element(By.TAG_NAME, 'div')
@@ -168,7 +173,7 @@ try:
                 company_name_text = "";
                 if len(company_nested_div_content) > 0 :
                     company_name_text = company_nested_div_content[0]
-                    print(company_name_text)
+                    # print(company_name_text)
 
                 job_details_block = browser.find_element(By.XPATH, 
                     '//div[contains(@class, "jobsearch-RightPane")]')
@@ -186,15 +191,15 @@ try:
                     'jobDescriptionText')
                 job_description_text = job_description.text
                 
-                print(link_to_job)
-                print(job_id)
-                print(job_title_text)
-                print(company_name_text)
-                print(job_location_text)
-                print(job_title_text)
-                print(job_description_text)
-                print(ad_date)
-                print(id_of_the_website)
+                # print(link_to_job)
+                # print(job_id)
+                # print(job_title_text)
+                # print(company_name_text)
+                # print(job_location_text)
+                # print(job_title_text)
+                # print(job_description_text)
+                # print(ad_date)
+                # print(id_of_the_website)
 
             except NoSuchElementException:
                 print('Not a link card')
@@ -204,23 +209,45 @@ try:
                 print('Dom element not in a node tree anymore')
 
             time.sleep(1)
+            apply_status = False
 
             try:
-                cursor.execute(
-                    "INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id) \
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                    (
-                        link_to_job,
-                        job_id,
-                        job_title_text,
-                        company_name_text,
-                        job_location_text,
-                        job_title_text,
-                        job_description_text,
-                        ad_date,
-                        id_of_the_website,
-                    ),
+                jobs = table(
+                    "jobs",
+                    column("level"),
+                    column("position"),
+                    column("about"),
+                    column("url"),
+                    column("website_id"),
+                    column("job_id"),
+                    column("post_date"),
+                    column("company"),
+                    column("location"),
+                    column("apply_status"),
                 )
+                sql = """
+INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id, apply_status)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+RETURNING position, company;
+"""
+                data = (link_to_job, job_id, job_title_text, company_name_text, job_location_text,
+                        job_title_text, job_description_text, ad_date, id_of_the_website, apply_status)
+                cursor.execute(sql, data)
+                # cursor.execute(
+                #     "INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id) \
+                #                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                #     (
+                #         link_to_job,
+                #         job_id,
+                #         job_title_text,
+                #         company_name_text,
+                #         job_location_text,
+                #         job_title_text,
+                #         job_description_text,
+                #         ad_date,
+                #         id_of_the_website,
+                #     ),
+                # )
             except errors.UniqueViolation:
                 print('Job already exist in the database')
                 pass
