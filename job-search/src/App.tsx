@@ -11,11 +11,11 @@ function App() {
   return (
     <>
       <Navbar setJobs={setJobs} />
-      <div className="flex ml-11 gap-14 ">
-        <div className="">
+      <div className="flex ml-11 gap-14">
+        <div className="w-2/5">
           <Jobs setJob={setJob} jobs={jobs} setJobs={setJobs}></Jobs>
         </div>
-        <div className="w-2/5">{job && <JobComponent job={job} />}</div>
+        <div className="w-3/5 mr-11">{job && <JobComponent job={job} />}</div>
       </div>
     </>
   );
