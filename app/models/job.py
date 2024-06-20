@@ -45,7 +45,7 @@ class Job(db.Model):
         return {
             "id": self.id,
             "title": self.level,
-            "postion": self.position,
+            "position": self.position,
             "company": self.company,
             "location": self.location,
             "about": self.about,

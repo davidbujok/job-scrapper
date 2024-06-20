@@ -1,3 +1,4 @@
+import sys
 import psycopg2
 from psycopg2 import Error, errors
 from selenium import webdriver
@@ -81,11 +82,15 @@ if cookies == None:
 
 browser.get("https://www.linkedin.com/jobs/")
 print("What job you're looking for?")
-searched_job_title_text = input()
+# searched_job_title_text = input()
 # searched_job_title_text = "Junior Software Developer"
+# The first argumnet on the list is path(because path is passed to python as first arg)!
+# searched_job_title_text = sys.argv[0]
+searched_job_title_text = sys.argv[1]
 print("Where?")
-searched_job_location = input()
+# searched_job_location = input()
 # searched_job_location = "Edinburgh"
+searched_job_location = sys.argv[2]
 
 
 def search_for_jobs(searched_job_title_text, searched_job_location):
