@@ -14,21 +14,21 @@ const Jobs = ({ setJob, jobs, setJobs }: JobsProps) => {
         setJobs(jobs);
     }
 
-    async function fetchJuniorJobs() {
-        const response = await fetch("http://127.0.0.1:5000/junior_jobs");
-        const junior_jobs = await response.json();
-        setJobs(junior_jobs);
-    }
+    //async function fetchJuniorJobs() {
+    //    const response = await fetch("http://127.0.0.1:5000/junior_jobs");
+    //    const junior_jobs = await response.json();
+    //    setJobs(junior_jobs);
+    //}
 
-    const toggleToggle = (index: number) => {
-        const jobsCopy = [...jobs];
-        const job = jobsCopy[index];
-        console.log(job.apply_status);
-        job.apply_status = job.apply_status ? false : true;
-        console.log(job.apply_status);
-        jobsCopy[index] = job;
-        setJobs(jobsCopy);
-    };
+    //const toggleToggle = (index: number) => {
+    //    const jobsCopy = [...jobs];
+    //    const job = jobsCopy[index];
+    //    console.log(job.apply_status);
+    //    job.apply_status = job.apply_status ? false : true;
+    //    console.log(job.apply_status);
+    //    jobsCopy[index] = job;
+    //    setJobs(jobsCopy);
+    //};
 
     useEffect(() => {
         fetchJobs();
@@ -39,8 +39,8 @@ const Jobs = ({ setJob, jobs, setJobs }: JobsProps) => {
         <>
             <div className="bg-stone-200  border rounded-s p-10 flex flex-col gap-3">
                 {jobs?.map((job) => (
-                    <div className="border rounded-xl border-current p-4 hover:bg-amber-100">
-                        <div onClick={() => setJob(job)} key={job.id} className="mb-2 text-xl ">
+                    <div key={job.id} className="border rounded-xl border-current p-4 hover:bg-amber-100">
+                        <div onClick={() => setJob(job)} className="mb-2 text-xl ">
                             <div className="flex justify-between">
                                 <div className="flex-col">
                                     <p className="overflow-hidden text-3xl font-bold text-amber-900 ">{job.title}</p>

@@ -1,13 +1,17 @@
-import { Dispatch, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Job as JobType } from "../Interfaces"
+import ScrapeJobs from "./ScrapeJobs";
 
 interface JobProps {
     setJobs: Dispatch<React.SetStateAction<JobType[]>>
+    setScrapePage: React.Dispatch<React.SetStateAction<boolean>>;
+    setDocsPage: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Navbar({ setJobs }: JobProps) {
+export default function Navbar({ setJobs, setDocsPage }: JobProps) {
 
     const [query, setQuery] = useState<string>("")
+    const [scrapePage, setScrapePage] = useState<boolean>(false)
 
     async function queryJobs(query: String) {
         console.log(query)
@@ -22,32 +26,37 @@ export default function Navbar({ setJobs }: JobProps) {
         setJobs(jobs)
     }
 
-    const activateScraping = () => {
-        fetch("http://127.0.0.1:5000/runscript")
-    }
-
     async function searchJobs(e: React.ChangeEvent<HTMLInputElement>) {
         e?.preventDefault();
         setQuery(e.target.value)
         query ? queryJobs(query) : fetchJobs()
     }
 
+    //<button onClick={activateScraping}>Start Scraping Data</button>
     return (
         <>
-            <div className="flex bg-stone-300 justify-between mb-5 pt-2">
-                <div className="flex gap-10 ml-10">
-                    <form>
-                        <input className="w-full bg-stone-400 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            value={query}
-                            onChange={(e) => searchJobs(e)}
-                        />
-                    </form>
+            {scrapePage ? <ScrapeJobs setScrapePage={setScrapePage}/> :
+                <div className="flex bg-stone-300 justify-between mb-5 pt-2">
+                    <div className="flex gap-10 ml-10">
+                        <form>
+                            <input className="w-full bg-stone-400 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                value={query}
+                                onChange={(e) => searchJobs(e)}
+                            />
+                        </form>
+                    </div>
+                    <button 
+                        onClick={() => setDocsPage(false)}
+                    >
+                        <h1 className="text-4xl text-amber-900 font-extrabold">
+                            Workless
+                        </h1>
+                    </button>
+                    <div className="self-center mr-5 text-3xl">
+                        <button onClick={() => setScrapePage(true)}>Scrape Jobs</button>
+                    </div>
                 </div>
-                <h1 className="text-5xl left-1/2 justify-self-center text-amber-900 font-extrabold">Workless</h1>
-                <div className="self-center mr-5 text-3xl">
-                    <button onClick={activateScraping}>Start Scraping Data</button>
-                </div>
-            </div>
+            }
         </>
     )
 }
