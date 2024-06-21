@@ -22,6 +22,12 @@ def get_queried_jobs(query):
     queried_jobs = Job.query_job(query)
     return json.dumps(queried_jobs, default=str)
 
+@jobs_bp.route("/hide_job/<id>", methods=['GET', 'POST'])
+def hide_job(id):
+    queried_jobs = Job.hide_job(id)
+    return ""
+    # return json.dumps(queried_jobs, default=str)
+
 @jobs_bp.route("/runscript/<param1>/<param2>", methods=['GET', 'POST'])
 def run_script(param1, param2):
     print(f"Received request with param1: {param1}, param2: {param2}")

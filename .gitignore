@@ -38,3 +38,5 @@ dist-ssr
 extras
 job-search/.eslintrc.cjs
 Session.vim
+.env
+cv.tsx

@@ -202,13 +202,16 @@ try:
                     column("company"),
                     column("location"),
                     column("apply_status"),
+                    column("hidden_status"),
                 )
                 sql = """
-INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id, apply_status)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id,
+apply_status, hidden_status)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 RETURNING position, company;
 """
-                data = (job_link, job_id, job_title_text, company, location, job_header_level, job_about, ad_date, id_of_the_website, apply_status)
+                data = (job_link, job_id, job_title_text, company, location, job_header_level,
+                        job_about, ad_date, id_of_the_website, False, False)
                 cursor.execute(sql, data)
                 print(f"Job({id}) for {company} added to database. Posted on: {ad_date}") 
             except errors.UniqueViolation:
