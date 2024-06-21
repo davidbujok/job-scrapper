@@ -9,5 +9,6 @@ export interface Job {
   job_id: number;
   post_date: string;
   apply_status: boolean;
+  hidden_status: boolean;
   websites_id: number;
 }
