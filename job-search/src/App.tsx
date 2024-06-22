@@ -12,7 +12,7 @@ function App() {
 
     return (
         <>
-            <Navbar setJobs={setJobs} setDocsPage={setDocsPage}/>
+            <Navbar setJobs={setJobs} jobs={jobs} setDocsPage={setDocsPage}/>
             {docsPage ?
                 <CreateDocs job={job}></CreateDocs>
                 :
