@@ -10,6 +10,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
+from logger import log_job
 from helpers import (
     get_url_id,
     parsed_date_to_python_date_object,
@@ -17,8 +18,9 @@ from helpers import (
     cut_out_location,
 )
 import user_credentials
-
-browser = webdriver.Firefox()
+options = webdriver.FirefoxOptions()
+options.add_argument("--headless")
+browser = webdriver.Firefox(options=options)
 browser.implicitly_wait(3)
 
 try:
@@ -30,39 +32,38 @@ connection = psycopg2.connect(
     database="mydatabase", host="localhost", user="arch", password="", port=5432
 )
 
-try:
-    with connection.cursor() as cursor:
-        try:
-            website_url = str(browser.current_url)
-            cursor.execute(
-                "INSERT INTO websites (name, url) VALUES ('linkedin', %s);",
-                (website_url,),
-            )
-            connection.commit()
-        except Exception as e:
-            connection.rollback()
-            print(f"Error inserting into websites table: {e}")
-except Error as e:
-    print("Database connection error: ", e)
-
+# try:
+#     with connection.cursor() as cursor:
+#         try:
+#             website_url = str(browser.current_url)
+#             cursor.execute(
+#                 "INSERT INTO websites (name, url) VALUES ('linkedin', %s);",
+#                 (website_url,),
+#             )
+#             connection.commit()
+#         except Exception as e:
+#             connection.rollback()
+#             print(f"Error inserting into websites table: {e}")
+# except Error as e:
+#     print("Database connection error: ", e)
 
 try:
     cookies = user_credentials.cookies
     for cookie in cookies:
         browser.add_cookie(cookie)
         time.sleep(1)
-    print("Cookies added")
+    print("Sucesfully injected cookies' to linkedin")
 except Error as e:
     cookies = None
-    print("Missing cookies in user_credentials")
+    print("Check if cookies in user_credentials are valid")
 
 
 if cookies == None:
-    print("no Cookies found")
+    print("Missing Cookies, you need to add cookies first")
     user_login = user_credentials.user_login
     user_password = user_credentials.user_password
     if user_login or user_password == None:
-        print("No credentials provided, abort")
+        print("No credentials provided, you need to add user's credentials first ")
         exit()
     try:
         user_credentials_login = browser.find_element(By.ID, "session_key")
@@ -79,20 +80,12 @@ if cookies == None:
         print("You're already loged in")
 
 # JOB TITLE AND LOCATION OF THE QUERY
-
+# This comes from the flask server. Check ../app/controllers/jobs.py [run_script] method
 browser.get("https://www.linkedin.com/jobs/")
-print("What job you're looking for?")
-# searched_job_title_text = input()
-# searched_job_title_text = "Junior Software Developer"
-# The first argumnet on the list is path(because path is passed to python as first arg)!
-# searched_job_title_text = sys.argv[0]
 searched_job_title_text = sys.argv[1]
-print("Where?")
-# searched_job_location = input()
-# searched_job_location = "Edinburgh"
 searched_job_location = sys.argv[2]
 
-
+# Injecting parameters from Flask app. Input comes from the React App ../job-search/src/Components/ScrapeJobs.tsx
 def search_for_jobs(searched_job_title_text, searched_job_location):
     time.sleep(2)
     job_title_text_input_element = browser.find_element(
@@ -111,8 +104,7 @@ def search_for_jobs(searched_job_title_text, searched_job_location):
 
 search_for_jobs(searched_job_title_text, searched_job_location)
 
-# NARROW LIST OF ALL JOBS FOR THE QUERY TO LAST 24h
-print("Choosing time range for search query")
+# NARROW LIST OF ALL JOBS FOR THE QUERY TO LAST 24H
 time_range_selection_button = browser.find_element(
     By.ID, "searchFilter_timePostedRange"
 )
@@ -129,32 +121,23 @@ while time_range_24h is None:
     except StaleElementReferenceException:
         print("Waiting for the element to appear")
         pass
-print("Results filtered to last 24hrs")
 
+# WAIT, AVOID CAPTCHA / BOT DETECTION
 time.sleep(1.5)
 time_range_selection_button.click()
-# browser.execute_script("arguments[0].click();", show_results_button)
-# show_results_button.click()
-# show_results_button = browser.find_element(By.CSS_SELECTOR,
-# 'button[data-control-name="filter_show_results"]')
 
-time.sleep(3)
+time.sleep(2.5)
 ul_query_jobs = browser.find_element(By.CLASS_NAME, "scaffold-layout__list-container")
 list_of_jobs = ul_query_jobs.find_elements(
     By.CLASS_NAME, "jobs-search-results__list-item"
 )
-print(list_of_jobs) 
-# XPATH exmaple
-# show_results_button = browser.find_element(By.XPATH, '//button[contains(@class, "artdeco-button")
-# and contains(@class, "ember-view") and contains(@class, "ml2") and
-# contains(@class, "artdeco-button--2") and starts-with(@aria-label, "Apply current filter")]')
 
 try:
     with connection.cursor() as cursor:
         user_login = user_credentials.user_login
         user_password = user_credentials.user_password
-        query_id = "SELECT id FROM websites WHERE name = 'linkedin'"
         id_of_the_website = None
+        query_id = "SELECT id FROM websites WHERE name = 'linkedin'"
         try:
             cursor.execute(query_id)
             id_of_the_website = cursor.fetchone()
@@ -176,7 +159,7 @@ try:
                 By.CLASS_NAME,
                 "job-details-jobs-unified-top-card__company-name",
             ).text
-            print(job_header_info)
+            # print(job_header_info)
             job_header_level = browser.find_element(
                 By.CLASS_NAME, "job-details-jobs-unified-top-card__job-insight"
             ).text
@@ -184,11 +167,11 @@ try:
             # print(job_about) 
             job_id = get_url_id(job_link)
             location = cut_out_location(job_header_info)
-            print(f"location {location}")
+            # print(f"location {location}")
             company = company_element
-            print(f"company {company}")
+            # print(f"company {company}")
             ad_date = parsed_date_to_python_date_object(job_header_info)
-            apply_status = False
+
             try:
                 jobs = table(
                     "jobs",
@@ -212,11 +195,12 @@ RETURNING position, company;
 """
                 data = (job_link, job_id, job_title_text, company, location, job_header_level,
                         job_about, ad_date, id_of_the_website, False, False)
+                log_job("linkedin", job_title_text, company, location, job_header_level, ad_date)
                 cursor.execute(sql, data)
-                print(f"Job({id}) for {company} added to database. Posted on: {ad_date}") 
             except errors.UniqueViolation:
                 print("Job already exist in the database")
                 pass
             cursor.connection.commit()
 except errors.ExternalRoutineException as e:
     print(e)
+browser.quit()
