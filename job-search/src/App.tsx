@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Jobs from "./Components/Jobs";
-import { Job as JobType } from "./Interfaces";
+import { Job as JobType, User as UserType } from "./Interfaces";
 import JobComponent from "./Components/JobComponent";
 import Navbar from "./Components/Navbar";
 import CreateDocs from "./Components/CreateDocsComponent";
@@ -9,10 +9,24 @@ function App() {
     const [job, setJob] = useState<JobType | null>(null);
     const [docsPage, setDocsPage] = useState<boolean>(false);
     const [jobs, setJobs] = useState<Array<JobType>>([]);
+    const [userJobs, setUserJobs] = useState<UserType | null>(null)
+
+    const url = window.location.href;
+
+    const pathParts = url.split('/');
+    const userId = pathParts[pathParts.length - 1]; // Gets the last part of the URL
+
+    const fetchUserJobs = async (userId: string) => {
+        const response = await fetch(`http://127.0.0.1:5000/jobs/user/${userId}`);
+        const userJobsData = await response.json();
+        console.log(userJobsData)
+        setUserJobs(userJobsData);
+    };
+    useEffect(() => { fetchUserJobs(userId) }, [])
 
     return (
         <>
-            <Navbar setJobs={setJobs} jobs={jobs} setDocsPage={setDocsPage}/>
+            <Navbar userJobs={userJobs} setJobs={setJobs} setUserJobs={setUserJobs} jobs={jobs} setDocsPage={setDocsPage}/>
             {docsPage ?
                 <CreateDocs job={job}></CreateDocs>
                 :

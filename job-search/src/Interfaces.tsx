@@ -12,3 +12,10 @@ export interface Job {
   hidden_status: boolean;
   websites_id: number;
 }
+
+export interface User {
+  id: number;
+  name: string;
+  job: string;
+  location: string;
+}

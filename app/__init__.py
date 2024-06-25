@@ -17,6 +17,8 @@ def create_app(config=Config):
 
     from app.controllers.jobs import jobs_bp
     app.register_blueprint(jobs_bp)
+    from app.controllers.users import user_bp
+    app.register_blueprint(user_bp)
     from app.seed import seed
     app.cli.add_command(seed)
 

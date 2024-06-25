@@ -16,8 +16,12 @@ from helpers import (
     parse_indeed_realtive_date_to_date_object,
     get_id_indded_job
 )
+from scrapers.logger import log_job
 
-browser = webdriver.Firefox()
+options = webdriver.FirefoxOptions()
+options.add_argument("--headless")
+browser = webdriver.Firefox(options=options)
+# browser = webdriver.Firefox()
 browser.implicitly_wait(3)
 
 job_title_text = None
@@ -55,10 +59,12 @@ except Error as e:
 
 print("What job you're looking for?")
 # job_title_text = input()
-job_title_text = ""
+job_title_text = sys.argv[1]
+# job_title_text = ""
 print("Where?")
 # job_location = input()
-job_location = "Dunfermline, Fife"
+# job_location = "Dunfermline, Fife"
+job_location = sys.argv[2]
 time.sleep(1)
 try:
     ad_alert = browser.find_element(By.XPATH, '//button[contains(@aria-label,"close")]')
@@ -227,8 +233,6 @@ try:
                 print('Dom element not in a node tree anymore')
 
             time.sleep(1)
-            apply_status = False
-
             try:
                 jobs = table(
                     "jobs",
@@ -244,13 +248,16 @@ try:
                     column("apply_status"),
                 )
                 sql = """
-INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id, apply_status)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO jobs (url, job_id, position, company, location, level, about, post_date, websites_id,
+apply_status, hidden_status)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 RETURNING position, company;
 """
                 data = (link_to_job, job_id, job_title_text, company_name_text, job_location_text,
-                        job_title_text, job_description_text, ad_date, id_of_the_website, apply_status)
+                        job_title_text, job_description_text, ad_date, id_of_the_website, False,
+                        False)
                 cursor.execute(sql, data)
+                log_job("indeed", job_title_text, company_name_text, job_location_text, job_title_text, ad_date)
             except errors.UniqueViolation:
                 print('Job already exist in the database')
                 pass
@@ -261,3 +268,4 @@ RETURNING position, company;
             cursor.connection.commit()
 except errors.ExternalRoutineException as e:
     print(e)
+browser.quit()

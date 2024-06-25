@@ -83,7 +83,9 @@ if cookies == None:
 # This comes from the flask server. Check ../app/controllers/jobs.py [run_script] method
 browser.get("https://www.linkedin.com/jobs/")
 searched_job_title_text = sys.argv[1]
+# searched_job_title_text = "IT"
 searched_job_location = sys.argv[2]
+# searched_job_location = "Dunfermline"
 
 # Injecting parameters from Flask app. Input comes from the React App ../job-search/src/Components/ScrapeJobs.tsx
 def search_for_jobs(searched_job_title_text, searched_job_location):
@@ -148,9 +150,11 @@ try:
             job.click()
             job_link = browser.current_url
             time.sleep(3)
-            job_title_text = job.find_element(
+            job_title_block = job.find_element(
                 By.CLASS_NAME, "job-card-list__title--link"
-            ).text
+            )
+            # Some jobs have double spans within <a> element hence need for below:
+            job_title_text = job_title_block.find_element(By.XPATH, ".//span[1]").text
             job_header_info = browser.find_element(
                 By.CLASS_NAME,
                 "job-details-jobs-unified-top-card__primary-description-container",
